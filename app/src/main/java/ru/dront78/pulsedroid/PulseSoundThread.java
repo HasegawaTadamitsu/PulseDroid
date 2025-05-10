@@ -3,7 +3,6 @@ package ru.dront78.pulsedroid;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.Integer;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -13,8 +12,8 @@ import android.media.AudioTrack;
 
 public class PulseSoundThread implements Runnable {
 	private boolean mTerminate = false;
-	private String mServer;
-	private int mPort;
+	private final String mServer;
+	private final int mPort;
 
 	public PulseSoundThread(String Server, String Port) {
 		mServer = Server;
@@ -45,7 +44,7 @@ public class PulseSoundThread implements Runnable {
 			e.printStackTrace();
 		}
 
-		if (false == mTerminate) {
+		if (! mTerminate) {
 			try {
 				audioData = new BufferedInputStream(sock.getInputStream());
 			} catch (UnsupportedEncodingException e) {
@@ -68,10 +67,10 @@ public class PulseSoundThread implements Runnable {
 		final int sampleRate = 48000;
 
 		int musicLength = AudioTrack.getMinBufferSize(sampleRate,
-				AudioFormat.CHANNEL_CONFIGURATION_STEREO,
+				AudioFormat.CHANNEL_OUT_STEREO,
 				AudioFormat.ENCODING_PCM_16BIT);
 		AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-				sampleRate, AudioFormat.CHANNEL_CONFIGURATION_STEREO,
+				sampleRate, AudioFormat.CHANNEL_OUT_STEREO,
 				AudioFormat.ENCODING_PCM_16BIT, musicLength,
 				AudioTrack.MODE_STREAM);
 		audioTrack.play();
@@ -79,7 +78,7 @@ public class PulseSoundThread implements Runnable {
 		// TODO buffer size computation
 		byte[] audioBuffer = new byte[musicLength * 8];
 
-		while (false == mTerminate) {
+		while (! mTerminate) {
 			try {
 				int sizeRead = audioData.read(audioBuffer, 0, musicLength * 8);
 				int sizeWrite = audioTrack.write(audioBuffer, 0, sizeRead);

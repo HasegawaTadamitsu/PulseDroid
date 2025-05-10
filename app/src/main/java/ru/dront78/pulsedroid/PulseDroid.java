@@ -18,18 +18,18 @@ public class PulseDroid extends Activity {
 		setContentView(R.layout.main);
 
 		// here is onButtonClick handler
-		final Button playButton = (Button) findViewById(R.id.ButtonPlay);
+		final Button playButton = findViewById(R.id.ButtonPlay);
 		playButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				if (false == playState) {
+				if (! playState) {
 					playState = true;
 					playButton.setText("Stop");
 					if (null != playThread) {
 						playThread.Terminate();
 						playThread = null;
 					}
-					final EditText server = (EditText) findViewById(R.id.EditTextServer);
-					final EditText port = (EditText) findViewById(R.id.EditTextPort);
+					final EditText server = findViewById(R.id.EditTextServer);
+					final EditText port = findViewById(R.id.EditTextPort);
 					playThread = new PulseSoundThread(server.getText()
 							.toString(), port.getText().toString());
 					new Thread(playThread).start();
