@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.haselab.myapplicationtest"
+    namespace = "ru.dront78.pulsedroid"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.haselab.myapplicationtest"
+        applicationId = "ru.dront78.pulsedroid"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
