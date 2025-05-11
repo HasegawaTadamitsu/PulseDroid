@@ -7,5 +7,7 @@
     <string name="status_message_playing">now playing</string>
     <string name="error_message_need_server_input">need server</string>
     <string name="error_message_need_port_input">need port</string>
+    <string name="server">Server</string>
+    <string name="port">Port</string>
 
 </resources>
