@@ -1,101 +1,114 @@
 package ru.dront78.pulsedroid;
 
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
-
 public class PulseSoundThread implements Runnable {
-	private boolean mTerminate = false;
-	private final String mServer;
-	private final int mPort;
+    private final String mServer;
+    private final int mPort;
+    private boolean mTerminate = false;
+    private boolean mRunning = false;
 
-	public PulseSoundThread(String Server, String Port) {
-		mServer = Server;
-		mPort = Integer.valueOf(Port);
-	}
+    public PulseSoundThread(String server, int port) {
+        mServer = server;
+        mPort = port;
+    }
 
-	public void Terminate() {
-		mTerminate = true;
-	}
+    public void terminate() {
+        mTerminate = true;
+    }
 
-	public void run() {
-		Socket sock = null;
-		BufferedInputStream audioData = null;
-		try {
-			sock = new Socket(mServer, mPort);
-		} catch (UnknownHostException e) {
-			// TODO if the host name could not be resolved into an IP address.
-			Terminate();
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO if an error occurs while creating the socket
-			Terminate();
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			// TODO if a security manager exists and it denies the permission to
-			// connect to the given address and port.
-			Terminate();
-			e.printStackTrace();
-		}
+    public boolean isRunning() {
+        return mRunning;
+    }
 
-		if (! mTerminate) {
-			try {
-				audioData = new BufferedInputStream(sock.getInputStream());
-			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				Terminate();
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				Terminate();
-				e.printStackTrace();
-			}
-		}
+    public void run() {
+        Socket sock = null;
+        BufferedInputStream audioData = null;
+        mRunning = false;
+        try {
+            sock = new Socket(mServer, mPort);
+        } catch (UnknownHostException e) {
+            terminate();
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            terminate();
+            e.printStackTrace();
+            return;
+        } catch (SecurityException e) {
+            // connect to the given address and port.
+            terminate();
+            e.printStackTrace();
+            return;
+        }
 
-		// Create AudioPlayer
-		/*
-		 * final int sampleRate = AudioTrack
-		 * .getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
-		 */
-		// TODO native audio?
-		final int sampleRate = 48000;
+        if (!mTerminate) {
+            try {
+                audioData = new BufferedInputStream(sock.getInputStream());
+            } catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                terminate();
+                e.printStackTrace();
+                return;
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                terminate();
+                e.printStackTrace();
+                return;
+            }
+        }
 
-		int musicLength = AudioTrack.getMinBufferSize(sampleRate,
-				AudioFormat.CHANNEL_OUT_STEREO,
-				AudioFormat.ENCODING_PCM_16BIT);
-		AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-				sampleRate, AudioFormat.CHANNEL_OUT_STEREO,
-				AudioFormat.ENCODING_PCM_16BIT, musicLength,
-				AudioTrack.MODE_STREAM);
-		audioTrack.play();
+        // Create AudioPlayer
+        /*
+         * final int sampleRate = AudioTrack
+         * .getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
+         */
+        // TODO native audio?
+        final int sampleRate = 48000;
 
-		// TODO buffer size computation
-		byte[] audioBuffer = new byte[musicLength * 8];
+        int musicLength = AudioTrack.getMinBufferSize(sampleRate,
+                AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT);
+        AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                sampleRate, AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT, musicLength,
+                AudioTrack.MODE_STREAM);
+        audioTrack.play();
 
-		while (! mTerminate) {
-			try {
-				int sizeRead = audioData.read(audioBuffer, 0, musicLength * 8);
-				int sizeWrite = audioTrack.write(audioBuffer, 0, sizeRead);
-				if (sizeWrite == AudioTrack.ERROR_INVALID_OPERATION) {
-					sizeWrite = 0;
-				}
-				if (sizeWrite == AudioTrack.ERROR_BAD_VALUE) {
-					sizeWrite = 0;
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+        mRunning = true;
 
-		audioTrack.stop();
-		sock = null;
-		audioData = null;
-	}
+        // TODO buffer size computation
+        byte[] audioBuffer = new byte[musicLength * 8];
+
+        while (!mTerminate) {
+            try {
+                int sizeRead = audioData.read(audioBuffer, 0, musicLength * 8);
+                int sizeWrite = audioTrack.write(audioBuffer, 0, sizeRead);
+                if (sizeWrite == AudioTrack.ERROR_INVALID_OPERATION) {
+                    sizeWrite = 0;
+                }
+                if (sizeWrite == AudioTrack.ERROR_BAD_VALUE) {
+                    sizeWrite = 0;
+                }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                mRunning = false;
+                return;
+            }
+        }
+
+        audioTrack.stop();
+        sock = null;
+        audioData = null;
+        mRunning = false;
+    }
 }
