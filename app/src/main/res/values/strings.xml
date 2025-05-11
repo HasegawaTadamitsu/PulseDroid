@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PulseDroid</string>
+    <string name="button_text_play">Play!</string>
+    <string name="button_text_stop">Stop!</string>
+    <string name="button_text_exit">exit</string>
+    <string name="status_message_playing">now playing</string>
+    <string name="error_message_need_server_input">need server</string>
+    <string name="error_message_need_port_input">need port</string>
+    <string name="server">Server</string>
+    <string name="port">Port</string>
+
+</resources>
