@@ -9,3 +9,13 @@ And now you just connect to ip:port via PulseDroid software and enjoy
 Hope it will be very useful somewhere for someone else.
 
 Regards, Ivan ;)
+
+
+example
+ server(your PC)
+  pactl load-module module-simple-protocol-tcp rate=48000 format=s16le channels=2 source=TCP_output.monitor record=true port=9999 listen=0.0.0.0
+
+ Android
+  Server Server IP Address  or Server Name
+  port   9999
+

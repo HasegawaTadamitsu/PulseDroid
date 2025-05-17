@@ -5,16 +5,13 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class PulseSoundThread implements Runnable {
     private final String mServer;
     private final int mPort;
     private boolean mTerminate = false;
-    private boolean mRunning = false;
+    private StopCallBack mCallback;
 
     public PulseSoundThread(String server, int port) {
         mServer = server;
@@ -25,43 +22,29 @@ public class PulseSoundThread implements Runnable {
         mTerminate = true;
     }
 
-    public boolean isRunning() {
-        return mRunning;
+    public void setCallback(StopCallBack callback) {
+        this.mCallback = callback;
     }
 
     public void run() {
         Socket sock = null;
         BufferedInputStream audioData = null;
-        mRunning = false;
         try {
             sock = new Socket(mServer, mPort);
-        } catch (UnknownHostException e) {
+        } catch (Exception e) {
             terminate();
             e.printStackTrace();
-            return;
-        } catch (IOException e) {
-            terminate();
-            e.printStackTrace();
-            return;
-        } catch (SecurityException e) {
-            // connect to the given address and port.
-            terminate();
-            e.printStackTrace();
+            mCallback.onStop();
             return;
         }
 
         if (!mTerminate) {
             try {
                 audioData = new BufferedInputStream(sock.getInputStream());
-            } catch (UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
+            } catch (Exception e) {
                 terminate();
                 e.printStackTrace();
-                return;
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                terminate();
-                e.printStackTrace();
+                mCallback.onStop();
                 return;
             }
         }
@@ -83,8 +66,6 @@ public class PulseSoundThread implements Runnable {
                 AudioTrack.MODE_STREAM);
         audioTrack.play();
 
-        mRunning = true;
-
         // TODO buffer size computation
         byte[] audioBuffer = new byte[musicLength * 8];
 
@@ -98,10 +79,10 @@ public class PulseSoundThread implements Runnable {
                 if (sizeWrite == AudioTrack.ERROR_BAD_VALUE) {
                     sizeWrite = 0;
                 }
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
+            } catch (Exception e) {
+                terminate();
                 e.printStackTrace();
-                mRunning = false;
+                mCallback.onStop();
                 return;
             }
         }
@@ -109,6 +90,7 @@ public class PulseSoundThread implements Runnable {
         audioTrack.stop();
         sock = null;
         audioData = null;
-        mRunning = false;
+        mCallback.onStop();
     }
+
 }
